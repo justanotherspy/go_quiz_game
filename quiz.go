@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -17,28 +18,22 @@ func main() {
 
 	records, err := readData(*filepath)
 	if err != nil {
-		log.Fatal(err)
+		exit(fmt.Sprintf("\nFailed to read file %s\n", *filepath), err)
 	}
-	var countCorrect int = 0
-	var countIncorrect int = 0
+	questions := parseLinesIntoProblems(records)
 
-	for _, record := range records {
-		question := string(record[0])
-		answer := string(record[1])
-		fmt.Printf("%v = ", question)
-		var userAnswer string
-		fmt.Scanln(&userAnswer)
-		if userAnswer == answer {
-			fmt.Print("Correct\n")
+	countCorrect := 0
+
+	for i, p := range questions {
+		fmt.Printf("Problem #%d: %s = \n", i+1, p.q)
+		var answer string
+		fmt.Scanf("%s\n", &answer)
+		if answer == p.a {
 			countCorrect++
-		} else {
-			fmt.Print("Incorrect\n")
-			countIncorrect++
 		}
 	}
 
-	fmt.Printf("You answered %v correct\n", countCorrect)
-	fmt.Printf("You answered %v incorrect\n", countIncorrect)
+	fmt.Printf("You answered %d correct out of %d\n", countCorrect, len(questions))
 }
 
 func readData(filePath string) ([][]string, error) {
@@ -56,4 +51,24 @@ func readData(filePath string) ([][]string, error) {
 	}
 
 	return records, nil
+}
+
+func parseLinesIntoProblems(lines [][]string) (problems []problem) {
+	problems = make([]problem, len(lines))
+	for i, line := range lines {
+		problems[i] = problem {
+			q: line[0],
+			a: strings.TrimSpace(line[1]),
+		}
+	}
+	return
+}
+
+func exit(reason string, err error) {
+	log.Fatal(reason, err)
+}
+
+type problem struct {
+	q string
+	a string 
 }
